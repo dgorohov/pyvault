@@ -44,7 +44,7 @@ def execute(exec_cfg: ExecConfig, arguments):
 
 @cli.command()
 def version():
-    click.echo(f"pyvault v{ver}")
+    click.echo(f"pyvault {ver}")
 
 
 if __name__ == '__main__':
