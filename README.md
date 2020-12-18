@@ -1,3 +1,5 @@
+Work In Progress....
+
 PyVault
 ---
 ## AWS configuration
@@ -35,5 +37,5 @@ source_profile = sso-power-user
 ## Usage
 
 ```
-# pyvault exec --profile=iz-test-ro -- aws s3 ls
+# pyvault exec --profile=test-ro -- aws s3 ls
 ```

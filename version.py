@@ -1,1 +1,1 @@
-version = "HEAD"
+version = 'v0.1.6'
