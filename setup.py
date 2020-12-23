@@ -6,6 +6,7 @@ setup(
     version=f'{ver}',
     packages=find_packages(),
     include_package_data=True,
+    package_data={'vault.prompt.qt': ['prompt.ui']},
     setup_requires=[
         'setuptools-pipfile'
     ],
