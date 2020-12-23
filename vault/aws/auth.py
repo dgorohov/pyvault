@@ -3,7 +3,8 @@ import webbrowser
 import boto3
 import botocore
 import click
-import auth
+from vault import auth
+from vault.prompt import mfa_prompt
 
 
 class AuthResponse(auth.Credentials):
@@ -54,12 +55,13 @@ class AssumeRoleProvider(object):
 
 
 class MfaAssumeRoleProvider(AssumeRoleProvider):
-    def __init__(self, profile):
+    def __init__(self, profile, use_ui_prompt=False):
         AssumeRoleProvider.__init__(self, profile)
         self.value = None
+        self.use_ui_prompt = use_ui_prompt
 
     def do_auth(self):
-        value = input(f"Enter MFA for {self.profile['mfa_serial']}: ")
+        value = mfa_prompt(f"Enter MFA for {self.profile['mfa_serial']}: ", use_ui_prompt=self.use_ui_prompt)
         value = value.strip()
         if len(value) != 6:
             raise ValueError("MFA token should be 6 digits width")
@@ -144,8 +146,9 @@ class SSORoleProvider(object):
 
 
 class Auth(auth.Auth):
-    def __init__(self, profile):
+    def __init__(self, profile, use_ui_prompt=False):
         self.profile = profile
+        self.use_ui_prompt = use_ui_prompt
 
     def auth(self) -> AuthResponse:
         for y in yield_first([self.profile.current, self.do_auth]):
@@ -155,7 +158,7 @@ class Auth(auth.Auth):
         def get_auth():
             if 'role_arn' in self.profile:
                 if 'mfa_serial' in self.profile:
-                    return MfaAssumeRoleProvider(self.profile).auth()
+                    return MfaAssumeRoleProvider(self.profile, use_ui_prompt=self.use_ui_prompt).auth()
                 return AssumeRoleProvider(self.profile).auth()
             return SSORoleProvider(self.profile).auth()
 

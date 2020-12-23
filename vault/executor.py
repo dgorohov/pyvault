@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 import click
 
-from auth import Credentials
+from vault.auth import Credentials
 
 
 class ExecConfig(object):
