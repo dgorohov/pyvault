@@ -1,5 +1,5 @@
-from aws.auth import AuthResponse
-from executor import ExecutorEnv
+from vault.aws.auth import AuthResponse
+from vault.executor import ExecutorEnv
 
 
 class AwsEnv(ExecutorEnv):

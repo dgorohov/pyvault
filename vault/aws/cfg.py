@@ -1,7 +1,8 @@
 import configparser
 import time
 from os.path import expanduser
-from aws.auth import AuthResponse
+
+from vault.aws.auth import AuthResponse
 
 
 class iniReader(object):
