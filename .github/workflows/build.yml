@@ -29,7 +29,7 @@ jobs:
           new_tag=$(echo $latest_tag | awk -F. -v a="$1" -v b="$2" -v c="$3" '{printf("%d.%d.%d", $1+a, $2+b , $3+1)}')
           echo "new tag: v$new_tag"
           ## update python version
-          echo "version = 'v$new_tag'" > 'version.py'
+          echo "version = 'v$new_tag'" > 'vault/version.py'
           git commit --reuse-message=HEAD@{1} version.py || echo "No changes to commit"
           git push origin
           git tag v$new_tag
