@@ -11,6 +11,6 @@ setup(
     use_pipfile=True,
     entry_points='''
         [console_scripts]
-        pyvault=cli:cli
+        pyvault=cli:__main__
     ''',
 )

@@ -39,3 +39,9 @@ source_profile = sso-power-user
 ```
 # pyvault exec --profile=test-ro -- aws s3 ls
 ```
+
+## Install
+
+```
+# pip install git+https://github.com/dgorohov/pyvault.git@master
+```
