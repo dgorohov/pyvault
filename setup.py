@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
+from vault.version import version as ver
 
 setup(
     name='pyvault',
-    version='0.1',
+    version=f'{ver}',
     packages=find_packages(),
     include_package_data=True,
     setup_requires=[
