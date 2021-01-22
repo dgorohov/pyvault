@@ -62,8 +62,11 @@ class Executor(object):
                                  stderr=subprocess.STDOUT,
                                  close_fds=True,
                                  env=self.env)
-            for line in p.stdout.readlines():
-                click.echo(line.rstrip())
-            return p.wait()
+            while True:
+                output = p.stdout.readline()
+                if output == '' or p.poll() is not None:
+                    break
+                if output:
+                    click.echo(output.rstrip(b'\n'))
         else:
             json.dump(self.credentials.to_dict(), sys.stdout, indent=4)
