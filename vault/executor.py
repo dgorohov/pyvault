@@ -1,10 +1,7 @@
 import json
 import os
-import subprocess
 import sys
 from abc import ABC, abstractmethod
-
-import click
 
 from vault.auth import Credentials
 
@@ -57,16 +54,6 @@ class Executor(object):
 
     def invoke(self, *arguments):
         if len(arguments) > 0:
-            p = subprocess.Popen([*arguments],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 close_fds=True,
-                                 env=self.env)
-            while True:
-                output = p.stdout.readline()
-                if output == '' or p.poll() is not None:
-                    break
-                if output:
-                    click.echo(output.rstrip(b'\n'))
+            os.execvpe(arguments[0], args=arguments, env=self.env)
         else:
             json.dump(self.credentials.to_dict(), sys.stdout, indent=4)
