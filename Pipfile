@@ -10,10 +10,10 @@ python_version = "3.9"
 click = '>=7.1.2'
 boto3 = '==1.16.36'
 requests = '>=2.25.0'
-pyqt5 = "*"
+PyQt5 = '==5.15.2'
+pyfzf = "*"
 
 [dev-packages]
 setuptools = ">=39.2.0"
 setuptools-pipfile = "*"
-wheel = ">=0.36.2"
 toml = "*"
