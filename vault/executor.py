@@ -56,4 +56,4 @@ class Executor(object):
         if len(arguments) > 0:
             os.execvpe(arguments[0], args=arguments, env=self.env)
         else:
-            json.dump(self.credentials.to_dict(), sys.stdout, indent=4)
+            json.dump(self.credentials.to_dict(), sys.stdout)

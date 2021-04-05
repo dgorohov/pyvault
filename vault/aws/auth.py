@@ -1,10 +1,16 @@
+import os
 import time
 import webbrowser
+
 import boto3
 import botocore
-import click
+from botocore.config import Config
+
 from vault import auth
 from vault.prompt import mfa_prompt
+
+config = Config(connect_timeout=5, retries={'max_attempts': 2})
+# boto3.set_stream_logger(name='botocore')
 
 
 class AuthResponse(auth.Credentials):
@@ -27,13 +33,22 @@ class AuthResponse(auth.Credentials):
         }
 
 
-class AssumeRoleProvider(object):
+class authProvider:
+
+    def __init__(self):
+        if os.environ.get('AWS_PROFILE') is not None:
+            os.environ.pop("AWS_PROFILE")
+
+
+class AssumeRoleProvider(authProvider):
     def __init__(self, profile):
+        authProvider.__init__(self)
         self.profile = profile
+        default_credentials = self.profile.default_credentials()
         self.session = boto3.session.Session(
-            aws_access_key_id=self.profile.default_credentials()['aws_access_key_id'],
+            aws_access_key_id=default_credentials['aws_access_key_id'],
             region_name=self.profile['region'],
-            aws_secret_access_key=self.profile.default_credentials()['aws_secret_access_key'])
+            aws_secret_access_key=default_credentials['aws_secret_access_key'])
         self.sts_client = self.client_init()
 
     def client_init(self):
@@ -74,12 +89,13 @@ class MfaAssumeRoleProvider(AssumeRoleProvider):
         )
 
 
-class SSORoleProvider(object):
+class SSORoleProvider(authProvider):
     def __init__(self, profile):
+        authProvider.__init__(self)
         self.profile = profile
         self.region = self.profile['region']
-        self.sso_oidc_client = boto3.client('sso-oidc', self.region)
-        self.sso_client = boto3.client('sso', self.region)
+        self.sso_oidc_client = boto3.client('sso-oidc', self.region, config=config)
+        self.sso_client = boto3.client('sso', self.region, config=config)
 
     def get_oidc_token(self):
         client_creds = self.sso_oidc_client.register_client(
@@ -91,7 +107,6 @@ class SSORoleProvider(object):
             clientSecret=client_creds['clientSecret'],
             startUrl=self.profile['sso_start_url'])
         verification_uri_complete = device_creds['verificationUriComplete']
-        click.echo(verification_uri_complete)
         webbrowser.open_new(verification_uri_complete)
 
         slow_down_delay = 5
