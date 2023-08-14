@@ -22,7 +22,7 @@ include_profile = mfa-login
 role_arn = arn:aws:iam::XXXXXXXXXXXX:role/RO
 
 [profile test-ro-vault]
-credential_process = pyvault exec --profile=test-ro --ui
+credential_process = pyvault exec --profile=test-ro
 
 #
 # SSO account's profiles
