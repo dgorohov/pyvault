@@ -4,10 +4,10 @@ import webbrowser
 
 import boto3
 import botocore
+import click
 from botocore.config import Config
 
 from vault import auth
-from vault.prompt import mfa_prompt
 
 config = Config(connect_timeout=5, retries={'max_attempts': 2})
 # boto3.set_stream_logger(name='botocore')
@@ -70,13 +70,19 @@ class AssumeRoleProvider(authProvider):
 
 
 class MfaAssumeRoleProvider(AssumeRoleProvider):
-    def __init__(self, profile, use_ui_prompt=False):
+    def __init__(self, profile, mfa_stdin=False):
         AssumeRoleProvider.__init__(self, profile)
         self.value = None
-        self.use_ui_prompt = use_ui_prompt
+        self.mfa_stdin = mfa_stdin
 
     def do_auth(self):
-        value = mfa_prompt(f"Enter MFA for {self.profile['mfa_serial']}: ", use_ui_prompt=self.use_ui_prompt)
+        if not self.mfa_stdin:
+            value = click.prompt(
+                f">>> Enter MFA for {self.profile['mfa_serial']}",
+                err=True
+            )
+        else:
+            value = input()
         value = value.strip()
         if len(value) != 6:
             raise ValueError("MFA token should be 6 digits width")
@@ -161,9 +167,9 @@ class SSORoleProvider(authProvider):
 
 
 class Auth(auth.Auth):
-    def __init__(self, profile, use_ui_prompt=False):
+    def __init__(self, profile, mfa_stdin=False):
         self.profile = profile
-        self.use_ui_prompt = use_ui_prompt
+        self.mfa_stdin = mfa_stdin
 
     def auth(self) -> AuthResponse:
         for y in yield_first([self.profile.current, self.do_auth]):
@@ -173,7 +179,7 @@ class Auth(auth.Auth):
         def get_auth():
             if 'role_arn' in self.profile:
                 if 'mfa_serial' in self.profile:
-                    return MfaAssumeRoleProvider(self.profile, use_ui_prompt=self.use_ui_prompt).auth()
+                    return MfaAssumeRoleProvider(self.profile, mfa_stdin=self.mfa_stdin).auth()
                 return AssumeRoleProvider(self.profile).auth()
             return SSORoleProvider(self.profile).auth()
 

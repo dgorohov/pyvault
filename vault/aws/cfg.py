@@ -87,11 +87,16 @@ class AwsProfile(object):
         self.token = token
         self.nested = None
         nested_profile = None
+        sso_session = None
         if 'include_profile' in self.section:
             nested_profile = self.section['include_profile']
         elif 'source_profile' in self.section:
             nested_profile = self.section['source_profile']
-        if nested_profile is not None:
+        elif 'sso_session' in self.section:
+            sso_session = self.section['sso_session']
+        if sso_session is not None:
+            self.nested = AwsProfile(sso_session, reader, AwsCredentials(sso_session), token, section_key='sso-session ')
+        elif nested_profile is not None:
             self.nested = AwsProfile(nested_profile, reader, AwsCredentials(nested_profile), token)
         elif reader.has_section('default') and name != 'default':
             self.nested = AwsProfile('default', reader, AwsCredentials(nested_profile), token, section_key='')

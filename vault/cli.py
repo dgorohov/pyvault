@@ -23,13 +23,13 @@ def pass_exec_config(fn):
     def _decorator():
         @click.pass_context
         @click.option("--profile", help="AWS profile", default="local")
-        @click.option("--ui/--no-ui", help="Use UI prompt for entering the MFA tokens", default=False)
         @click.option("--config", help="AWS config file", default="~/.aws/config")
-        def _fn(ctx, profile, ui, config, *args, **kwargs):
+        @click.option("--mfa-stdin", help="Read MFA code from stdin", default=False, is_flag=True)
+        def _fn(ctx, profile, config, mfa_stdin, *args, **kwargs):
             with AwsConfigReader(config_path=config) as config_parser:
-                credentials = auth.Auth(config_parser[profile], use_ui_prompt=ui).auth()
+                credentials = auth.Auth(config_parser[profile], mfa_stdin=mfa_stdin).auth()
                 env = AwsEnv(config_parser[profile], credentials)
-                obj = ExecConfig(profile, credentials, env)
+                obj = ExecConfig(profile, credentials, env, mfa_stdin)
             return ctx.invoke(fn, obj, *args, **kwargs)
 
         return update_wrapper(_fn, fn)

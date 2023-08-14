@@ -8,13 +8,15 @@ from vault.auth import Credentials
 
 class ExecConfig(object):
     __profile = None
+    __mfa_stdin = None
     __credentials = None
     __env = None
 
-    def __init__(self, profile, c: Credentials, e):
+    def __init__(self, profile, c: Credentials, e, mfa_stdin):
         self.__profile = profile
         self.__credentials = c
         self.__env = e
+        self.__mfa_stdin = mfa_stdin
 
     @property
     def profile(self):
@@ -27,6 +29,10 @@ class ExecConfig(object):
     @property
     def env(self):
         return self.__env
+
+    @property
+    def mfa_stdin(self):
+        return self.__mfa_stdin
 
 
 class ExecutorEnv(ABC):
