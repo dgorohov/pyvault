@@ -112,6 +112,9 @@ class SSORoleProvider(authProvider):
             clientId=client_creds['clientId'],
             clientSecret=client_creds['clientSecret'],
             startUrl=self.profile['sso_start_url'])
+        user_code = click.style(device_creds['userCode'], bold=True, fg="green")
+        click.echo(f">>> Please approve getting access token using following code: {user_code}", err=True)
+
         verification_uri_complete = device_creds['verificationUriComplete']
         webbrowser.open_new(verification_uri_complete)
 
