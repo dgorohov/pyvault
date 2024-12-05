@@ -4,13 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [requires]
-python_version = "3.9"
+python_version = "3.13"
 
 [packages]
-click = '>=7.1.2'
-boto3 = '==1.16.36'
-requests = '>=2.25.0'
-pyfzf = "*"
+click = '>=8.1.7'
+boto3 = '>=1.35.76'
+requests = ">=2.32.2"
+pyfzf = ">=0.3.1"
 
 [dev-packages]
 setuptools = ">=39.2.0"
