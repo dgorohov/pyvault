@@ -4,15 +4,16 @@ from vault.executor import ExecutorEnv
 
 class AwsEnv(ExecutorEnv):
 
-    def __init__(self, profile_details, credentials: AuthResponse):
+    def __init__(self, profile_details, credentials: AuthResponse, region=None):
         self.profile_details = profile_details
+        self.region = self.profile_details['region'] if region is None else region
         self.credentials = credentials
 
     def setup(self) -> dict:
         environments = {}
-        if 'region' in self.profile_details:
-            environments["AWS_DEFAULT_REGION"] = self.profile_details['region']
-            environments["AWS_REGION"] = self.profile_details['region']
+        if self.region is not None:
+            environments["AWS_DEFAULT_REGION"] = self.region
+            environments["AWS_REGION"] = self.region
         return {
                    "AWS_ACCESS_KEY_ID": self.credentials.aws_access_key_id,
                    "AWS_SECRET_ACCESS_KEY": self.credentials.aws_secret_access_key,

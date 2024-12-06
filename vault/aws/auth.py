@@ -10,6 +10,8 @@ from botocore.config import Config
 from vault import auth
 
 config = Config(connect_timeout=5, retries={'max_attempts': 2})
+
+
 # boto3.set_stream_logger(name='botocore')
 
 
@@ -41,13 +43,15 @@ class authProvider:
 
 
 class AssumeRoleProvider(authProvider):
-    def __init__(self, profile):
+    def __init__(self, profile, region=None):
         authProvider.__init__(self)
         self.profile = profile
         default_credentials = self.profile.default_credentials()
+        if region is None:
+            region = self.profile['region']
         self.session = boto3.session.Session(
             aws_access_key_id=default_credentials['aws_access_key_id'],
-            region_name=self.profile['region'],
+            region_name=region,
             aws_secret_access_key=default_credentials['aws_secret_access_key'])
         self.sts_client = self.client_init()
 
@@ -96,10 +100,10 @@ class MfaAssumeRoleProvider(AssumeRoleProvider):
 
 
 class SSORoleProvider(authProvider):
-    def __init__(self, profile):
+    def __init__(self, profile, region=None):
         authProvider.__init__(self)
         self.profile = profile
-        self.region = self.profile['region']
+        self.region = self.profile['region'] if region is None else region
         self.sso_oidc_client = boto3.client('sso-oidc', self.region, config=config)
         self.sso_client = boto3.client('sso', self.region, config=config)
 
@@ -170,8 +174,9 @@ class SSORoleProvider(authProvider):
 
 
 class Auth(auth.Auth):
-    def __init__(self, profile, mfa_stdin=False):
+    def __init__(self, profile, mfa_stdin=False, region=None):
         self.profile = profile
+        self.region = self.profile['region'] if region is None else region
         self.mfa_stdin = mfa_stdin
 
     def auth(self) -> AuthResponse:
@@ -183,8 +188,8 @@ class Auth(auth.Auth):
             if 'role_arn' in self.profile:
                 if 'mfa_serial' in self.profile:
                     return MfaAssumeRoleProvider(self.profile, mfa_stdin=self.mfa_stdin).auth()
-                return AssumeRoleProvider(self.profile).auth()
-            return SSORoleProvider(self.profile).auth()
+                return AssumeRoleProvider(self.profile, region=self.region).auth()
+            return SSORoleProvider(self.profile, region=self.region).auth()
 
         auth = get_auth()
         self.profile.set_current(auth)
