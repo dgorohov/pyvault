@@ -1,4 +1,3 @@
-import os
 from functools import update_wrapper
 
 import click
@@ -23,13 +22,14 @@ def pass_exec_config(fn):
     def _decorator():
         @click.pass_context
         @click.option("--profile", help="AWS profile", default="local")
+        @click.option("--region", help="AWS region to use")
         @click.option("--config", help="AWS config file", default="~/.aws/config")
         @click.option("--mfa-stdin", help="Read MFA code from stdin", default=False, is_flag=True)
-        def _fn(ctx, profile, config, mfa_stdin, *args, **kwargs):
+        def _fn(ctx, profile, config, mfa_stdin, region, *args, **kwargs):
             with AwsConfigReader(config_path=config) as config_parser:
-                credentials = auth.Auth(config_parser[profile], mfa_stdin=mfa_stdin).auth()
-                env = AwsEnv(config_parser[profile], credentials)
-                obj = ExecConfig(profile, credentials, env, mfa_stdin)
+                credentials = auth.Auth(config_parser[profile], mfa_stdin=mfa_stdin, region=region).auth()
+                env = AwsEnv(config_parser[profile], credentials, region=region)
+                obj = ExecConfig(profile, credentials, env, mfa_stdin, region)
             return ctx.invoke(fn, obj, *args, **kwargs)
 
         return update_wrapper(_fn, fn)

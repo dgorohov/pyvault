@@ -12,11 +12,12 @@ class ExecConfig(object):
     __credentials = None
     __env = None
 
-    def __init__(self, profile, c: Credentials, e, mfa_stdin):
+    def __init__(self, profile, c: Credentials, e, mfa_stdin, region):
         self.__profile = profile
         self.__credentials = c
         self.__env = e
         self.__mfa_stdin = mfa_stdin
+        self.__region = region
 
     @property
     def profile(self):
@@ -33,6 +34,10 @@ class ExecConfig(object):
     @property
     def mfa_stdin(self):
         return self.__mfa_stdin
+
+    @property
+    def region(self):
+        return self.__region
 
 
 class ExecutorEnv(ABC):
