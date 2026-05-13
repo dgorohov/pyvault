@@ -57,9 +57,10 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git pull origin master
+          echo "version = 'v${{ steps.version.outputs.new_version }}'" > vault/version.py
           git add vault/version.py
           git commit -m "chore: release v${{ steps.version.outputs.new_version }}"
-          git pull --rebase origin master
           git push origin
           git tag v${{ steps.version.outputs.new_version }}
           git push origin v${{ steps.version.outputs.new_version }}
