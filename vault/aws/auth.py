@@ -208,12 +208,15 @@ class SSORoleProvider(authProvider):
 
 
 class Auth(auth.Auth):
-    def __init__(self, profile, mfa_stdin=False, region=None):
+    def __init__(self, profile, mfa_stdin=False, region=None, force_refresh=False):
         self.profile = profile
         self.region = self.profile['region'] if region is None else region
         self.mfa_stdin = mfa_stdin
+        self.force_refresh = force_refresh
 
     def auth(self) -> AuthResponse:
+        if self.force_refresh:
+            return self.do_auth()
         for y in yield_first([self.profile.current, self.do_auth]):
             return y
 
