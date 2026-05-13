@@ -4,7 +4,7 @@ import click
 from pyfzf import FzfPrompt
 
 from vault.aws import auth
-from vault.aws.cfg import AwsConfigReader, AWSShellInit
+from vault.aws.cfg import AwsConfigReader, AWSShellInit, AwsTokens
 from vault.aws.env import AwsEnv
 from vault.config import Config
 from vault.executor import ExecConfig, Executor
@@ -109,6 +109,20 @@ def get_profile(pyvault_config, raw):
 @click.argument('arguments', nargs=-1, type=click.Path())
 def tool(pyvault_config, tool, arguments):
     AWSShellInit(pyvault_config).shell_exec(tool, list(arguments))
+
+
+@cli.command("clear")
+@click.option("--profile", help="AWS profile to clear cached tokens for")
+@click.option("--all", "all_profiles", is_flag=True, default=False, help="Clear cached tokens for all profiles")
+def clear_tokens(profile, all_profiles):
+    if all_profiles:
+        AwsTokens.clear_all()
+        click.echo("Cleared all cached tokens")
+    elif profile:
+        AwsTokens(profile).clear()
+        click.echo("Cleared cached tokens for profile: " + click.style(profile, fg="green", bold=True))
+    else:
+        raise click.UsageError("Specify --profile=<name> or --all")
 
 
 @cli.command()
