@@ -74,8 +74,8 @@ class AssumeRoleProvider(authProvider):
 
 
 class MfaAssumeRoleProvider(AssumeRoleProvider):
-    def __init__(self, profile, mfa_stdin=False):
-        AssumeRoleProvider.__init__(self, profile)
+    def __init__(self, profile, mfa_stdin=False, region=None):
+        AssumeRoleProvider.__init__(self, profile, region=region)
         self.value = None
         self.mfa_stdin = mfa_stdin
 
@@ -187,7 +187,7 @@ class Auth(auth.Auth):
         def get_auth():
             if 'role_arn' in self.profile:
                 if 'mfa_serial' in self.profile:
-                    return MfaAssumeRoleProvider(self.profile, mfa_stdin=self.mfa_stdin).auth()
+                    return MfaAssumeRoleProvider(self.profile, mfa_stdin=self.mfa_stdin, region=self.region).auth()
                 return AssumeRoleProvider(self.profile, region=self.region).auth()
             return SSORoleProvider(self.profile, region=self.region).auth()
 
