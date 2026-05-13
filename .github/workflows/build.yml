@@ -1,37 +1,26 @@
 name: build
 
 on:
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  bump-version:
+  build:
     runs-on: ubuntu-latest
-    if: "!startsWith(github.event.head_commit.message, 'chore: release')"
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Install pipenv
-        run: pip install pipenv
+
       - name: Install dependencies
-        run: |
-          pipenv install --dev
-      - name: bump version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git fetch --tags
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-          echo "latest tag: $latest_tag"
-          new_tag=$(echo $latest_tag | awk -F. -v a="$1" -v b="$2" -v c="$3" '{printf("%d.%d.%d", $1+a, $2+b , $3+1)}')
-          echo "new tag: v$new_tag"
-          ## update python version
-          echo "version = 'v$new_tag'" > 'vault/version.py'
-          git commit --reuse-message=HEAD@{1} vault/version.py || echo "No changes to commit"
-          git push origin
-          git tag v$new_tag
-          git push origin v$new_tag
+        run: pip install pipenv build setuptools wheel setuptools-pipfile
+
+      - name: Install package dependencies
+        run: pipenv install --dev
+
+      - name: Build package
+        run: python -m build --no-isolation
