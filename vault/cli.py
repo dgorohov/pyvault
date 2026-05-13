@@ -140,6 +140,31 @@ def clear_tokens(profile, all_profiles):
         raise click.UsageError("Specify --profile=<name> or --all")
 
 
+@cli.command("status")
+@click.option("--pyvault-config", help="pyvault config file", default="~/.aws/pyvault")
+def status(pyvault_config):
+    selected = AWSShellInit(pyvault_config).shell_get()
+    profile_name = selected or "default"
+    click.echo("Profile: " + click.style(profile_name, fg="white", bold=True))
+
+    tokens = AwsTokens(profile_name)
+    if tokens.token is None:
+        click.echo("Token:   " + click.style("no cached token", fg="red"))
+        return
+
+    expiration = float(tokens.token['expiration'])
+    remaining = expiration - time.time()
+    if remaining <= 0:
+        click.echo("Token:   " + click.style("expired", fg="red"))
+    elif remaining < 900:
+        mins = int(remaining // 60)
+        click.echo("Token:   " + click.style(f"expires in {mins}m", fg="yellow"))
+    else:
+        hours = int(remaining // 3600)
+        mins = int((remaining % 3600) // 60)
+        click.echo("Token:   " + click.style(f"expires in {hours}h {mins}m", fg="green"))
+
+
 @cli.command()
 def version():
     click.echo(f"pyvault {ver}")
