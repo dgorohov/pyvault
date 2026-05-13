@@ -1,3 +1,4 @@
+import time
 from functools import update_wrapper
 
 import click
@@ -38,13 +39,26 @@ def pass_exec_config(fn):
     return _decorator()
 
 
+def _token_badge(profile_name):
+    tokens = AwsTokens(profile_name)
+    if tokens.token is None:
+        return click.style("  [no token]", fg="red")
+    remaining = float(tokens.token['expiration']) - time.time()
+    if remaining <= 0:
+        return click.style("  [expired]", fg="red")
+    if remaining < 900:
+        return click.style(f"  [expires in {int(remaining // 60)}m]", fg="yellow")
+    hours, mins = int(remaining // 3600), int((remaining % 3600) // 60)
+    return click.style(f"  [expires in {hours}h {mins}m]", fg="green")
+
+
 @cli.command("list")
 @click.option("--config", help="AWS config file", default="~/.aws/config")
 def profiles_list(config):
     def _dump_prov_profiles(prov, profiles):
         click.echo("Provider: " + click.style(prov, fg="white", bold=True))
         for _profile in profiles:
-            click.secho(f" {_profile}", fg="green")
+            click.echo(click.style(f" {_profile}", fg="green") + _token_badge(_profile))
 
     with AwsConfigReader(config_path=config) as config_parser:
         config_parser.list_profiles(_dump_prov_profiles)
