@@ -13,6 +13,17 @@ from vault.executor import ExecConfig, Executor
 from vault.version import version as ver
 
 
+def _complete_profile(ctx, param, incomplete):
+    profiles = []
+    config = ctx.params.get('config', '~/.aws/config')
+    try:
+        with AwsConfigReader(config_path=config) as reader:
+            reader.list_profiles(lambda _, ps: profiles.extend(ps))
+    except Exception:
+        pass
+    return [click.shell_completion.CompletionItem(p) for p in profiles if p.startswith(incomplete)]
+
+
 @click.group(invoke_without_command=True)
 @click.option('--debug/--no-debug', default=False)
 @click.pass_context
@@ -23,7 +34,7 @@ def cli(ctx, debug):
 def pass_exec_config(fn):
     def _decorator():
         @click.pass_context
-        @click.option("--profile", help="AWS profile", default="local")
+        @click.option("--profile", help="AWS profile", default="local", shell_complete=_complete_profile)
         @click.option("--region", help="AWS region to use")
         @click.option("--config", help="AWS config file", default="~/.aws/config")
         @click.option("--mfa-stdin", help="Read MFA code from stdin", default=False, is_flag=True)
@@ -180,6 +191,19 @@ def whoami(exec_cfg: ExecConfig, arguments):
     click.echo("Account:    " + click.style(identity['Account'], fg="green"))
     click.echo("UserId:     " + click.style(identity['UserId'], fg="green"))
     click.echo("Arn:        " + click.style(identity['Arn'], fg="green"))
+
+
+@cli.command("completion")
+@click.argument("shell", type=click.Choice(["bash", "zsh", "fish"]))
+def completion(shell):
+    snippets = {
+        "bash": 'eval "$(_PYVAULT_COMPLETE=bash_source pyvault)"',
+        "zsh":  'eval "$(_PYVAULT_COMPLETE=zsh_source pyvault)"',
+        "fish": "_PYVAULT_COMPLETE=fish_source pyvault | source",
+    }
+    rc_files = {"bash": "~/.bashrc", "zsh": "~/.zshrc", "fish": "~/.config/fish/config.fish"}
+    click.echo(f"Add this line to {rc_files[shell]}:")
+    click.echo(click.style(snippets[shell], fg="green", bold=True))
 
 
 @cli.command()
