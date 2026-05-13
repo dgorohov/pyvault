@@ -91,8 +91,8 @@ class MfaAssumeRoleProvider(AssumeRoleProvider):
         else:
             value = input()
         value = value.strip()
-        if len(value) != 6:
-            raise ValueError("MFA token should be 6 digits width")
+        if len(value) != 6 or not value.isdigit():
+            raise ValueError("MFA token must be exactly 6 digits")
         return self.sts_client.assume_role(
             RoleSessionName='AssumeRoleSession',
             RoleArn=self.profile['role_arn'],
