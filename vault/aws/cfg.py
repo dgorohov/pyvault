@@ -63,6 +63,18 @@ class AwsTokens(iniIO):
             self.token['session_token'],
             self.token['expiration'])
 
+    def clear(self):
+        if self.parser.has_section(self.name):
+            self.parser.remove_section(self.name)
+            self.flush()
+
+    @classmethod
+    def clear_all(cls, path="~/.aws/tokens"):
+        path = expanduser(path)
+        with open(path, "w") as f:
+            f.write("")
+        os.chmod(path, 0o600)
+
 
 class AwsCredentials(iniIO):
 
