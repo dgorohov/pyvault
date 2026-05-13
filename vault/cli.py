@@ -25,9 +25,10 @@ def pass_exec_config(fn):
         @click.option("--region", help="AWS region to use")
         @click.option("--config", help="AWS config file", default="~/.aws/config")
         @click.option("--mfa-stdin", help="Read MFA code from stdin", default=False, is_flag=True)
-        def _fn(ctx, profile, config, mfa_stdin, region, *args, **kwargs):
+        @click.option("--force-refresh", help="Force token refresh, bypass cache", default=False, is_flag=True)
+        def _fn(ctx, profile, config, mfa_stdin, region, force_refresh, *args, **kwargs):
             with AwsConfigReader(config_path=config) as config_parser:
-                credentials = auth.Auth(config_parser[profile], mfa_stdin=mfa_stdin, region=region).auth()
+                credentials = auth.Auth(config_parser[profile], mfa_stdin=mfa_stdin, region=region, force_refresh=force_refresh).auth()
                 env = AwsEnv(config_parser[profile], credentials, region=region)
                 obj = ExecConfig(profile, credentials, env, mfa_stdin, region)
             return ctx.invoke(fn, obj, *args, **kwargs)
