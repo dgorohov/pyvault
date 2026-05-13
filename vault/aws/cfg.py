@@ -44,6 +44,7 @@ class AwsTokens(iniIO):
         self.path = expanduser(path)
         with open(self.path, "a+") as _:
             pass
+        os.chmod(self.path, 0o600)
         iniIO.__init__(self, self.path, self.name)
         if self.parser.has_section(name):
             self.token = self.parser[name]
