@@ -143,6 +143,9 @@ class AwsConfigReader(ProfilesListing):
         pass
 
     def __getitem__(self, profile):
+        section = f"profile {profile}"
+        if not self.config_reader.has_section(section) and not self.config_reader.has_section(profile):
+            raise click.UsageError(f"Profile '{profile}' not found in {self.path}")
         return AwsProfile(profile, self.config_reader, AwsCredentials(profile), AwsTokens(profile))
 
     def list_profiles(self, fn):
