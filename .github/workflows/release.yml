@@ -31,7 +31,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: pip install pipenv build twine
+        run: pip install pipenv build twine setuptools wheel setuptools-pipfile
 
       - name: Install package dependencies
         run: pipenv install --dev
@@ -64,7 +64,7 @@ jobs:
           git push origin v${{ steps.version.outputs.new_version }}
 
       - name: Build package
-        run: python -m build
+        run: python -m build --no-isolation
 
       - name: Publish to GitHub Packages
         run: |
