@@ -59,6 +59,7 @@ jobs:
           git config --local user.name "GitHub Action"
           git add vault/version.py
           git commit -m "chore: release v${{ steps.version.outputs.new_version }}"
+          git pull --rebase origin master
           git push origin
           git tag v${{ steps.version.outputs.new_version }}
           git push origin v${{ steps.version.outputs.new_version }}
