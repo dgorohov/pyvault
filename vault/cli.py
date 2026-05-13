@@ -1,6 +1,7 @@
 import time
 from functools import update_wrapper
 
+import boto3
 import click
 from pyfzf import FzfPrompt
 
@@ -163,6 +164,22 @@ def status(pyvault_config):
         hours = int(remaining // 3600)
         mins = int((remaining % 3600) // 60)
         click.echo("Token:   " + click.style(f"expires in {hours}h {mins}m", fg="green"))
+
+
+@cli.command("whoami")
+@click.argument('arguments', nargs=-1, type=click.Path())
+@pass_exec_config
+def whoami(exec_cfg: ExecConfig, arguments):
+    creds = exec_cfg.credentials
+    session = boto3.Session(
+        aws_access_key_id=creds.aws_access_key_id,
+        aws_secret_access_key=creds.aws_secret_access_key,
+        aws_session_token=creds.aws_session_token)
+    identity = session.client('sts').get_caller_identity()
+    click.echo("Profile:    " + click.style(exec_cfg.profile, fg="white", bold=True))
+    click.echo("Account:    " + click.style(identity['Account'], fg="green"))
+    click.echo("UserId:     " + click.style(identity['UserId'], fg="green"))
+    click.echo("Arn:        " + click.style(identity['Arn'], fg="green"))
 
 
 @cli.command()
