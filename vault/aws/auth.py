@@ -160,8 +160,9 @@ class SSORoleProvider(authProvider):
         retry_interval = 5
         if 'interval' in device_creds:
             retry_interval = device_creds['interval']
+        deadline = time.time() + device_creds.get('expiresIn', 600)
 
-        while True:
+        while time.time() < deadline:
             try:
                 token = self.sso_oidc_client.create_token(
                     clientId=client_creds['clientId'],
@@ -177,6 +178,7 @@ class SSORoleProvider(authProvider):
                 else:
                     raise e
             time.sleep(retry_interval)
+        raise TimeoutError("SSO login timed out — device code expired without approval")
 
     def get_token(self):
         token = self.get_oidc_token()
