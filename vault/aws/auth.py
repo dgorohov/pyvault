@@ -94,8 +94,7 @@ class MfaAssumeRoleProvider(AssumeRoleProvider):
             RoleSessionName='AssumeRoleSession',
             RoleArn=self.profile['role_arn'],
             SerialNumber=self.profile['mfa_serial'],
-            TokenCode=value,
-            ExternalId=self.profile['mfa_serial']
+            TokenCode=value
         )
 
 
