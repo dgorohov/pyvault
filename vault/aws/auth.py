@@ -1,10 +1,13 @@
+import hashlib
 import os
 import time
 import webbrowser
+from os.path import expanduser
 
 import boto3
 import botocore
 import click
+import configparser
 from botocore.config import Config
 
 from vault import auth
@@ -106,10 +109,42 @@ class SSORoleProvider(authProvider):
         self.sso_oidc_client = boto3.client('sso-oidc', self.region, config=config)
         self.sso_client = boto3.client('sso', self.region, config=config)
 
+    def _oidc_cache_key(self):
+        raw = f"{self.profile['sso_start_url']}:{self.region}"
+        return f"sso-oidc-{hashlib.md5(raw.encode()).hexdigest()[:8]}"
+
+    def _load_cached_oidc_client(self):
+        cache_key = self._oidc_cache_key()
+        path = expanduser("~/.aws/tokens")
+        parser = configparser.ConfigParser()
+        parser.read(path)
+        if not parser.has_section(cache_key):
+            return None
+        section = parser[cache_key]
+        if time.time() >= float(section.get('client_secret_expires_at', 0)):
+            return None
+        return {'clientId': section['client_id'], 'clientSecret': section['client_secret']}
+
+    def _save_cached_oidc_client(self, client_creds):
+        cache_key = self._oidc_cache_key()
+        path = expanduser("~/.aws/tokens")
+        parser = configparser.ConfigParser()
+        parser.read(path)
+        if not parser.has_section(cache_key):
+            parser.add_section(cache_key)
+        parser.set(cache_key, 'client_id', client_creds['clientId'])
+        parser.set(cache_key, 'client_secret', client_creds['clientSecret'])
+        parser.set(cache_key, 'client_secret_expires_at', str(client_creds['clientSecretExpiresAt']))
+        with open(path, 'w') as f:
+            parser.write(f)
+
     def get_oidc_token(self):
-        client_creds = self.sso_oidc_client.register_client(
-            clientName='vault',
-            clientType='public')
+        client_creds = self._load_cached_oidc_client()
+        if client_creds is None:
+            client_creds = self.sso_oidc_client.register_client(
+                clientName='vault',
+                clientType='public')
+            self._save_cached_oidc_client(client_creds)
 
         device_creds = self.sso_oidc_client.start_device_authorization(
             clientId=client_creds['clientId'],
