@@ -61,9 +61,14 @@ class AssumeRoleProvider(authProvider):
     def client_init(self):
         return self.session.client('sts')
 
+    def _session_name(self):
+        if 'pyvault_session_name' in self.profile:
+            return self.profile['pyvault_session_name']
+        return 'AssumeRoleSession'
+
     def do_auth(self):
         return self.sts_client.assume_role(
-            RoleSessionName='AssumeRoleSession',
+            RoleSessionName=self._session_name(),
             RoleArn=self.profile['role_arn'])
 
     def auth(self):
@@ -94,7 +99,7 @@ class MfaAssumeRoleProvider(AssumeRoleProvider):
         if len(value) != 6:
             raise ValueError("MFA token should be 6 digits width")
         return self.sts_client.assume_role(
-            RoleSessionName='AssumeRoleSession',
+            RoleSessionName=self._session_name(),
             RoleArn=self.profile['role_arn'],
             SerialNumber=self.profile['mfa_serial'],
             TokenCode=value
