@@ -99,7 +99,7 @@ class AwsProfile(object):
         elif nested_profile is not None:
             self.nested = AwsProfile(nested_profile, reader, AwsCredentials(nested_profile), token)
         elif reader.has_section('default') and name != 'default':
-            self.nested = AwsProfile('default', reader, AwsCredentials(nested_profile), token, section_key='')
+            self.nested = AwsProfile('default', reader, AwsCredentials('default'), token, section_key='')
 
     def default_credentials(self):
         if self.creds is not None and self.creds.exists():
