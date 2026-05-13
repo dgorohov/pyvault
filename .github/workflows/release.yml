@@ -49,7 +49,6 @@ jobs:
           esac
           new_version="$major.$minor.$patch"
           echo "new_version=$new_version" >> $GITHUB_OUTPUT
-          echo "version = 'v$new_version'" > vault/version.py
 
       - name: Commit and tag
         env:
